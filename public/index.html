@@ -366,6 +366,35 @@
       margin-top: 18px;
     }
 
+    .budget-breakdown {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .breakdown-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 7px 10px;
+      border: 1px solid rgba(83, 97, 72, .22);
+      border-radius: 999px;
+      color: var(--olive);
+      background: rgba(238, 243, 233, .86);
+      line-height: 1;
+    }
+
+    .breakdown-chip.is-base {
+      color: var(--white);
+      background: var(--sage-dark);
+    }
+
     .module {
       display: grid;
       grid-template-columns: 42px minmax(0, 1fr) auto;
@@ -389,6 +418,12 @@
       border-color: rgba(83, 97, 72, .48);
       background: var(--sage-soft);
       box-shadow: 0 12px 30px rgba(83, 97, 72, .12);
+    }
+
+    .module.is-base {
+      cursor: default;
+      border-color: rgba(83, 97, 72, .56);
+      background: linear-gradient(135deg, rgba(83, 97, 72, .12), rgba(238, 243, 233, .96));
     }
 
     .module.is-available {
@@ -424,7 +459,12 @@
       background: var(--sage-dark);
     }
 
-    .module.is-on .toggle::after {
+    .module.is-base .toggle {
+      background: var(--sage-dark);
+    }
+
+    .module.is-on .toggle::after,
+    .module.is-base .toggle::after {
       transform: translateX(18px);
     }
 
@@ -908,6 +948,8 @@
               <span>$27.000.000</span>
             </div>
 
+            <div class="budget-breakdown" id="budgetBreakdown" aria-label="Resumen de presupuesto seleccionado"></div>
+
             <div class="modules" id="modules"></div>
           </div>
 
@@ -1119,6 +1161,7 @@
     const budgetAmount = document.querySelector('#budgetAmount');
     const selectedTotal = document.querySelector('#selectedTotal');
     const modulesEl = document.querySelector('#modules');
+    const budgetBreakdown = document.querySelector('#budgetBreakdown');
     const progressFill = document.querySelector('#progressFill');
     const fitMessage = document.querySelector('#fitMessage');
     const whatsappCta = document.querySelector('#whatsappCta');
@@ -1155,10 +1198,34 @@
       render();
     }
 
+    function renderBreakdown(selectedModules) {
+      const addonChips = selectedModules.map((module) => (
+        `<span class="breakdown-chip">+ ${module.name} ${money(module.price)}</span>`
+      )).join('');
+      budgetBreakdown.innerHTML = `
+        <span>Incluye</span>
+        <span class="breakdown-chip is-base">Base obligatoria ${money(base)}</span>
+        ${addonChips || '<span class="breakdown-chip">Sin modulos adicionales todavia</span>'}
+      `;
+    }
+
     function renderModules() {
       const budget = Number(budgetRange.value);
       const total = currentTotal();
-      modulesEl.innerHTML = modules.map((module) => {
+      const baseCard = `
+        <article class="module is-base is-on" aria-label="Base obligatoria incluida">
+          <span class="toggle" aria-hidden="true"></span>
+          <span>
+            <h3>Ama base obligatoria</h3>
+            <p>Atiende cualquier canal de venta, hace las preguntas correctas, toma datos, agenda en Google Calendar y deja resumen claro para el equipo.</p>
+          </span>
+          <span class="module-side">
+            <span class="price">${money(base)}</span>
+            <span class="module-state">Incluido siempre</span>
+          </span>
+        </article>
+      `;
+      const addonCards = modules.map((module) => {
         const isOn = selected.has(module.id);
         const canAdd = !isOn && total + module.price <= budget;
         const missing = Math.max(0, total + module.price - budget);
@@ -1182,18 +1249,20 @@
           </button>
         `;
       }).join('');
+      modulesEl.innerHTML = baseCard + addonCards;
     }
 
     function render() {
       const budget = Number(budgetRange.value);
       const total = currentTotal();
       const remaining = budget - total;
-      const selectedNames = modules.filter((module) => selected.has(module.id)).map((module) => module.name);
-      const moduleText = selectedNames.length ? selectedNames.join(', ') : 'solo el modulo base';
+      const selectedModules = modules.filter((module) => selected.has(module.id));
+      const selectedNames = selectedModules.map((module) => module.name);
+      const moduleText = selectedNames.length ? `base obligatoria + ${selectedNames.join(', ')}` : 'base obligatoria de Ama';
       const cheapestModule = Math.min(...modules.map((module) => module.price));
       const missingForFirstModule = Math.max(0, base + cheapestModule - budget);
       const message = selectedNames.length
-        ? `Con este presupuesto Amarella puede iniciar con Ama y sumar: ${moduleText}. Los modulos incluidos quedan marcados en verde.`
+        ? `Con este presupuesto Amarella incluye ${moduleText}. Los modulos incluidos quedan marcados en verde.`
         : missingForFirstModule
           ? `El presupuesto ya subio sobre la base. Faltan ${money(missingForFirstModule)} para que se active el primer modulo adicional.`
           : 'Con este presupuesto queda cubierto el agente base: canales de venta + preguntas + Google Calendar + resumen para el equipo.';
@@ -1214,6 +1283,7 @@
       fitMessage.textContent = overText;
       whatsappCta.href = `https://wa.me/${phone}?text=${encodeURIComponent(ctaText)}`;
       finalCta.href = whatsappCta.href;
+      renderBreakdown(selectedModules);
       renderModules();
     }
 
