@@ -28,6 +28,9 @@ const required = [
   '573113064578',
   '573216424600',
   'menos friccion, mas citas',
+  'Disponible para agregar',
+  'Faltan',
+  'Incluido',
   'wa.me',
 ];
 

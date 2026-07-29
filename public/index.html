@@ -388,10 +388,15 @@
     .module.is-on {
       border-color: rgba(83, 97, 72, .48);
       background: var(--sage-soft);
+      box-shadow: 0 12px 30px rgba(83, 97, 72, .12);
     }
 
-    .module.is-disabled {
-      opacity: .48;
+    .module.is-available {
+      border-color: rgba(83, 97, 72, .34);
+    }
+
+    .module.is-missing {
+      opacity: .72;
     }
 
     .toggle {
@@ -442,6 +447,34 @@
       font-size: 13px;
       font-weight: 900;
       white-space: nowrap;
+    }
+
+    .module-side {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+      text-align: right;
+    }
+
+    .module-state {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(216, 222, 209, .46);
+      font-size: 10px;
+      font-weight: 900;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .module.is-on .module-state,
+    .module.is-available .module-state {
+      color: var(--white);
+      background: var(--sage-dark);
     }
 
     .total-box {
@@ -791,8 +824,10 @@
         grid-template-columns: 42px minmax(0, 1fr);
       }
 
-      .price {
+      .module-side {
         grid-column: 2;
+        justify-items: start;
+        text-align: left;
       }
 
       .payment-plan {
@@ -1104,6 +1139,10 @@
       return base + modules.reduce((sum, module) => selected.has(module.id) ? sum + module.price : sum, 0);
     }
 
+    function syncBudgetToSelection() {
+      budgetRange.value = String(Math.min(max, Math.max(base, currentTotal())));
+    }
+
     function fitByBudget() {
       selected.clear();
       let available = Number(budgetRange.value) - base;
@@ -1117,16 +1156,29 @@
     }
 
     function renderModules() {
+      const budget = Number(budgetRange.value);
+      const total = currentTotal();
       modulesEl.innerHTML = modules.map((module) => {
         const isOn = selected.has(module.id);
+        const canAdd = !isOn && total + module.price <= budget;
+        const missing = Math.max(0, total + module.price - budget);
+        const stateText = isOn
+          ? 'Incluido'
+          : canAdd
+            ? 'Disponible para agregar'
+            : `Faltan ${money(missing)}`;
+        const stateClass = isOn ? 'is-on' : canAdd ? 'is-available' : 'is-missing';
         return `
-          <button class="module ${isOn ? 'is-on' : ''}" type="button" data-module="${module.id}" aria-pressed="${isOn}">
+          <button class="module ${stateClass}" type="button" data-module="${module.id}" aria-pressed="${isOn}">
             <span class="toggle" aria-hidden="true"></span>
             <span>
               <h3>${module.name}</h3>
               <p>${module.text}</p>
             </span>
-            <span class="price">${money(module.price)}</span>
+            <span class="module-side">
+              <span class="price">${money(module.price)}</span>
+              <span class="module-state">${stateText}</span>
+            </span>
           </button>
         `;
       }).join('');
@@ -1138,9 +1190,13 @@
       const remaining = budget - total;
       const selectedNames = modules.filter((module) => selected.has(module.id)).map((module) => module.name);
       const moduleText = selectedNames.length ? selectedNames.join(', ') : 'solo el modulo base';
+      const cheapestModule = Math.min(...modules.map((module) => module.price));
+      const missingForFirstModule = Math.max(0, base + cheapestModule - budget);
       const message = selectedNames.length
-        ? `Con este presupuesto Amarella puede iniciar con Ama y sumar: ${moduleText}.`
-        : 'Con este presupuesto queda cubierto el agente base: canales de venta + preguntas + Google Calendar + resumen para el equipo.';
+        ? `Con este presupuesto Amarella puede iniciar con Ama y sumar: ${moduleText}. Los modulos incluidos quedan marcados en verde.`
+        : missingForFirstModule
+          ? `El presupuesto ya subio sobre la base. Faltan ${money(missingForFirstModule)} para que se active el primer modulo adicional.`
+          : 'Con este presupuesto queda cubierto el agente base: canales de venta + preguntas + Google Calendar + resumen para el equipo.';
       const overText = remaining < 0
         ? `La seleccion supera el presupuesto por ${money(Math.abs(remaining))}.`
         : `${message} Margen disponible: ${money(remaining)}.`;
@@ -1167,6 +1223,7 @@
       const id = button.dataset.module;
       if (selected.has(id)) selected.delete(id);
       else selected.add(id);
+      syncBudgetToSelection();
       render();
     });
 

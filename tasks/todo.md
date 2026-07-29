@@ -15,3 +15,4 @@
 - URL actual: `https://propuesta-amarella-spa.solversai.cloud/?v=84cea98`.
 - Correccion de canales: commit `eef5994`, ya no limita Ama a Instagram; ahora habla de cualquier canal de venta.
 - URL actual: `https://propuesta-amarella-spa.solversai.cloud/?v=eef5994`.
+- Sincronizacion de calculadora: pendiente de publicar. Slider, tarjetas de modulos, total elegido, pagos 50/25/25 y WhatsApp deben moverse con la misma seleccion.
