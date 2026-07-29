@@ -1,0 +1,14 @@
+{
+  "name": "propuesta-amarella-spa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Propuesta interactiva SolversAI para Amarella Spa",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node scripts/check.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
