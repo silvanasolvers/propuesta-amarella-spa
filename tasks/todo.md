@@ -13,3 +13,5 @@
 - URL publica: `https://propuesta-amarella-spa.solversai.cloud/?v=e0612df`.
 - Revision visual/comercial: commit `84cea98`, con bloque psicologico, simulacion de cita, pagos 50/25/25 y contactos Valentina/Valentin.
 - URL actual: `https://propuesta-amarella-spa.solversai.cloud/?v=84cea98`.
+- Correccion de canales: commit `eef5994`, ya no limita Ama a Instagram; ahora habla de cualquier canal de venta.
+- URL actual: `https://propuesta-amarella-spa.solversai.cloud/?v=eef5994`.
