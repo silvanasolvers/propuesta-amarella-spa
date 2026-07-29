@@ -19,6 +19,14 @@ const required = [
   'Presupuesto disponible',
   'Mariana',
   'reconectar contigo',
+  '50% para iniciar',
+  '25% antes de terminar',
+  '25% al finalizar',
+  'Valentina Valdes',
+  'Valentin Florez',
+  '573113064578',
+  '573216424600',
+  'menos friccion, mas citas',
   'wa.me',
 ];
 
